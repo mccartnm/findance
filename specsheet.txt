@@ -1,0 +1,834 @@
+
+Name Options:
+- FindAnce
+
+- Currency - A select currency (e.g. CAD, USD, Euro, ...)
+    `- Code (text) - (e.g. USD, EUR)
+    `- Fullname (text) - (e.g. United States Dollar, European Euro, etc.)
+    `- Rate (float) - Based on the USD (@1.00)
+        `- Keep History On This
+
+    Potentially:
+    `- Denomination (OtM, FK) - How many of each type of "bills"
+        `- Amount (float) - (0.01, 5.00, 10.00, ...)
+
+- Asset - An ownable item - this can be anything from a car, to cold hard cash
+    `- Name (text) - (e.g. Tesla Model 3, Paper Towels, etc.)
+    `- Description (text) - The long description
+    `- Value (float) - The base unit value (against USD, convertable whenever we need)
+
+- AssetOwnership
+    `- Asset (FK)
+    `- OwningEntity (FK)
+    `- Percentage (float) - Amount of the ownership
+
+- OwningEntity - An entity that can "own" currency (e.g. John Doe, Super Corp, etc.)
+    `- Name (text) - The name of the entity
+    `- AssetOwnership (MtM) - "Shares" of assets owned by another enitity that this entity is privy to or has stake in
+
+- User - A single user with possible controls over enitites - (e.g. an accountant, a client)
+    `- EntityControl (MtM) - Permission component for a user
+        `- OwningEntity (FK) - The entity we have some level of control over
+        `- Control (CHOICE - one of: "read_owned", "read_all", "write", "admin") - how powerful is the users access
+            `- read_owned : View Only owned currency
+            `- read_all : View owned _and_ partial currency
+            `- write : Buy / Sell rights
+            `- admin : Buy / Sell & Manage rights
+
+Initial Models:
+    - Currency
+    - Asset
+    - AssetOwnership
+    - OwningEntity
+    - User
+    - EntityControl
+
+Main Components:
+
+    - DB hosting finance information (Initial model details above)
+
+    - App Abilities:
+        - ADD_ASSET:
+            - Select Currency
+            - Enter Amounts
+        - EXCHANGE:
+            - Select Exchanging Currency
+            - BUY
+                `- Select From Currency
+                `- Indentify CurrentAmount Items In a Form (e.g. $10: 5, $100: 1)
+            - SELL
+                `- Select To Currency
+                `- Based on available amounts owned by this entity, give the user the ability to
+                   sell to another currency.
+        - EXPORT:
+            - Be able to move that information, possibly in a live manner to a spreadsheet
+                `- Google Sheets API is perfect for this type of work
+                    `- Example: Every five minutes, we do an update to the currency rates or "push" the
+                       transactions from the app to the sheet as they happen
+            - Allow for static export to excel or csv
+        - VISUALIZE:
+            - Be able to visualize curreny information, be it through other finance APIs,
+              google sheets, etc.
+            - This may fall under the category of our export tooling but we'll see what happens
+
+Setup:
+
+    - Backend keeps the thirdparty API calls from the client to make it easier to
+      switch out if we update/upgrade
+        - Exchange Rates:
+            - Alpha Vantage: (~/Month) <- Probably the best for starters
+                `- Exchange Rate: https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=USD&to_currency=EUR&apikey={}
+                `- API ID : L0YU411ZXGHH22V2
+            - Open Exchange Rates: (1000/month)
+                `- Currency Aliases: https://openexchangerates.org/api/currencies.json <- Best for this purpose as it's free (no api key needed)
+                `- Live Rates : https://openexchangerates.org/api/latest.json?app_id={}
+                `- API ID : bc826a4b1c6e4a79a2d84bd30f954f53
+            - Currency Layer:(1000/month)
+                `- Live Rates : http://apilayer.net/api/live?access_key={}
+                `- API ID : 94b408862bdd62832555ff2c579c9803
+
+Afghanistan:
+    Currency Denominations: AFN 1,000, 500, 100, 50, 20, 10, 5, 2 and 1.
+
+Albania:
+    Currency Denominations: lek 5,000, 1,000, 500, 200 and 100.
+    Coins: lek 100, 50, 20, 10 and 5.
+
+American Samoa:
+    Currency Denominations: $1, $2, 5$, $10, $20, $50 and $100
+    Coins:  cent, nickel, dime, quarter, half dollar, and dollar.
+
+Andorra:
+    Currency Denominations: €500, €200, €100, €50, €20, €10 and €5
+    Coins: €2, €1 and 50, 20, 10, 5, 2 and 1 cents
+
+Angola:
+    Currency Denominations: AOA 100, 50, 10 and 5
+    Coins: AOA 100, 50, 20, 10, 5, 2 and 1, and 50, 20 and 10 centimos
+
+Anguilla:
+    Currency Denominations: EC$ 100, 50, 20, 10 and 5
+    Coins: EC$ 1, and 25, 10, 5, 2 and 1 cents
+
+Antigua And Barbuda:
+    Currency Denominations: EC$ 100, 50, 20, 10 and 5
+    Coins: EC$ 1, and 25, 10, 5, 2 and 1 cents
+
+Argentina:
+    Currency Denominations: AR$100, 50, 20, 10, 5 and 2
+    Coins: AR$5, 2 and 1, and in 50, 25, 10, 5 and 1 centavos.
+
+Armenia:
+    Currency Denominations: AMD 50,000, 20,000, 10,000, 5,000, 1,000 and 500
+    Coins: AMD 500, 200, 100, 50, 20 and 10
+
+Aruba:
+    Currency Denominations: ƒ500, 100, 50, 25 and 10
+    Coins: ƒ5, 2.5 and 1, and 50, 25, 10 and 5 cents
+
+Australia:
+    Currency Denominations: A$100, 50, 20, 10 and 5
+    Coins: A$2 and 1, and 50, 20, 10 and 5 cents
+
+Austria:
+    Currency Denominations: €500, 200, 100, 50, 20, 10 and 5
+    Coins: €2, 1 and 50, 20, 10, 5, 2 and 1 cents
+
+Azerbaijan:
+    Currency Denominations: 100, 50, 20, 10, 5 and 1 AZN
+    Coins: 50, 20, 10, 5, 3 and 1 gopik
+
+Bahamas:
+    Currency Denominations: B$100, 50, 20, 10, 5, 3 and 1, and 50 cents.
+    Coins: 25, 15, 10, 5 and 1 cents.
+
+Bahrain:
+    Currency Denominations: BHD20, 10, 5, and 1, and 500
+    Coins: 100, 50, 25 and 10 fils
+
+Bangladesh:
+    Currency Denominations: BDT500, 100, 50, 20, 10, 5, 2 and 1
+    Coins: BDT5 and 1, and 50, 25, 10 and 5 paisa
+
+Barbados:
+    Currency Denominations: BD$100, 50, 20, 10, 5 and 2
+    Coins: BD$1, and 25, 10, 5 and 1 cents
+
+Belarus:
+    Currency Denominations: p.100, 000, 50,000, 20,000, 10,000, 5,000, 1,000, 500, 100, 50, 20 and 10
+    Coins: not applicable
+
+Belgium:
+    Currency Denominations: €500, 200, 100, 50, 20, 10 and 5
+    Coins: €2, €1 and 50, 20, 10, 5, 2 and 1 cents
+
+Belize:
+    Currency Denominations: BZ$100, 50, 20, 10 and 5
+    Coins: BZ$1 and 50, 25, 10, 5 and 1 cents
+
+Benin:
+    Currency Denominations: XOF10, 000, 5,000, 2,000 and 1,000
+    Coins: XOF500, 200, 100, 50, 25, 10, 5 and 1
+
+Bermuda:
+    Currency Denominations: BD$100, 50, 20, 10, 5 and 2
+    Coins: BD$1, and 25, 10, 5 and 1 cents
+
+Bhutan:
+    Currency Denominations: Nu500, 100, 50, 20, 10 and 5
+    Coins: Nu1, and 50, 25 and 20 chetrum
+
+Bolivia:
+    Currency Denominations: Bs200, 100, 50, 20, 10 and 5
+    Coins: Bs5, 2 and 1, and 50, 20 and 10 centavos
+
+Bonaire:
+    Currency Denominations: ƒ250, 100, 50, 25, 10 and 5.
+    Coins: ƒ5, 2.5, 1 and 50, 25, 10, 5 and 1 cents.
+
+Bosnia And Herzegovina:
+    Currency Denominations: KM200, 100, 50, 20, 10, 5 and 1 and 50 pfenings.
+    Coins: KM2 and 1, and 50, 20 and 10 pfenings.
+
+Botswana:
+    Currency Denominations: P100, 50, 20 and 10.
+    Coins: P5, 2 and 1, and 50, 25, 10 and 5 thebe.
+
+Brazil:
+    Currency Denominations: R$100, 50, 10, 5, 2 and 1
+    Coins: R$1, and 50, 25, 10, 5, and 1 centavos
+
+Brunei Darussalam:
+    Currency Denominations: Br$10,000, 1,000, 500, 100, 50, 25, 10, 5 and 1
+    Coins: 50, 20, 10, 5 and 1 cents
+
+Bulgaria:
+    Currency Denominations: BGN100, 50, 20, 10, 5, 2 and 1
+    Coins: BGN1 and 50, 20, 10, 5, 2 and 1 stotinki
+
+Burkina Faso:
+    Currency Denominations: XOF10,000, 5,000, 2,500, 1,000 and 500
+    Coins: XOF250, 100, 50, 25, 10, 5 and 1
+
+Burundi:
+    Currency Denominations: BIF5, 000, 1,000, 500, 100, 50, 20 and 10
+    Coins: BIF10, 5 and 1
+
+Cambodia:
+    Currency Denominations: CR100, 000, 50,000, 20,000, 10,000, 5,000, 2,000, 1,000, 500, 200 and 100.
+
+Cameroon:
+    Currency Denominations: CFA10, 000, 5,000, 2,000, 1,000 and 500.
+    Coins: CFA250, 100, 50, 25, 10, 5, 2 and 1.
+
+Canada:
+    Currency Denominations: C$100, 50, 20, 10 and 5.
+    Coins: C$2 and 1, and 25, 10, 5 and 1 cents.
+
+Cape Verde:
+    Currency Denominations: CVE5, 000, 2,000, 1,000 and 500.
+    Coins: CVE200, 100, 50, 20, 10, 5 and 1.
+
+Cayman Islands:
+    Currency Denominations: CI$100, 50, 25, 10, 5 and 1.
+    Coins: 25, 10, 5 and 1 cents.
+
+Central African Republic:
+    Currency Denominations: XAF10, 000, 5,000, 2,000, 1,000 and 500.
+    Coins: XAF500, 100, 50, 25, 10, 5 and 1.
+
+Chad:
+    Currency Denominations: XAF10, 000, 5,000, 2,000, 1,000 and 500.
+    Coins: XAF500, 100, 50, 25, 10, 5 and 1.
+
+Chile:
+    Currency Denominations: CH$20,000, 10,000, 5,000, 2,000, 1,000 and 500.
+    Coins: CH$500, 100, 50, 10, 5 and 1.
+
+China:
+    Currency Denominations: ¥100, 50, 20, 10, 5 and 1, and 5 and 1 chiao/jiao.
+    Coins: ¥1, 5 and 1 chiao/jiao and 5, 2 and 1 fen.
+
+Costa Rica:
+    Currency Denominations: ¢10,000, 5,000, 2,000 and 1,000
+    Coins: ¢100, 50, 25, 20, 10 and 5
+
+Croatia:
+    Currency Denominations: Kn1, 000, 500, 200, 100, 50, 20, 10 and 5
+    Coins: Kn25, 5, 2 and 1, and 50, 20, 10, 5, 2 and 1 lipa
+
+Cuba:
+    Currency Denominations: CUC$100, 50, 20, 10 and 5.
+    Coins: CUC$1, and 20, 5, 2 and 1 centavos.
+
+Cyprus:
+    Currency Denominations: €500, 200, 100, 50, 20, 10 and 5.
+    Coins: €2 and 1, and 50, 20, 10, 5, 2 and 1 cents.
+
+Czech Republic:
+    Currency Denominations: 5,000, 2,000, 1,000, 500, 200, 100 and 50Kc.
+    Coins: 50, 20, 10, 5, 2 and 1Kc, and 50 haler.
+
+Denmark:
+    Currency Denominations: kr 1,000, 500, 200, 100 and 50.
+    Coins: kr 20, 10, 5, 2 and 1, and 50 and 25 øre.
+
+Dominican Republic:
+    Currency Denominations: RD$2,000, 1,000, 500, 100, 50, 20 and 10.
+    Coins: RD$1 and 5 and 50, 25, 10, 5 and 1 centavos.
+
+Dominica:
+    Currency Denominations: EC$100, 50, 20, 10 and 5.
+    Coins: EC$1, and 50, 25, 10, 5, 2 and 1 cents.
+
+East Timor:
+    Currency Denominations: $100, 50, 20, 10, 5, 2 and 1.
+    Coins: $1, and 50, 25, 10, 5 and 1 cents.
+
+Ecuador:
+    Currency Denominations: $100, 50, 20, 10, 5, 2 and 1.
+    Coins: $1, and 50, 25, 10, 5 and 1 cents.
+
+Egypt:
+    Currency Denominations: E£200, 100, 50, 20, 10, 5, 1, 50 piastres and 25 piastres.
+    Coins: 25, 20, 10 and 5 piastres.
+
+EL Salvador:  
+    Currency Denominations: $100, 50, 20, 10, 5, 2 and 1.
+    Coins: $1, and 50, 25, 10, 5 and 1 cents.
+
+Eritrea:
+    Currency Denominations: ERN100, 50, 10, 5 and 1
+    Coins: ERN100, 50, 25, 10, 5 and 1
+
+Estonia:
+    Currency Denominations: Kr500, 100, 50, 25, 10, 5, 2 and 1.
+    Coins: Kr5 and 1, and 50, 20, 10 and 5 senti.
+
+Ethiopia:
+    Currency Denominations: Br100, 50, 10, 5 and 1.
+    Coins: 50, 25, 10, 5 and 1 cents.
+
+Falkland Islands:
+    Currency Denominations: £50, 20, 10 and 5.
+    Coins: £2 and 1, and 50, 20, 10, 5, 2 and 1 pence.
+
+Fiji:
+    Currency Denominations: F$50, 20, 10, 5 and 2.
+    Coins: F$1, and 50, 20, 10, 5, 2 and 1 cents.
+
+Finland:
+    Currency Denominations: €500, 200, 100, 50, 20, 10 and 5.
+    Coins: €2 and 1, and 50, 20, 10, 5 cents.
+
+France:
+    Currency Denominations: €500, 200, 100, 50, 20, 10 and 5.
+    Coins: €2 and 1, and 50, 20, 10, 5 cents.
+
+French Guiana:
+    Currency Denominations: €500, 200, 100, 50, 20, 10 and 5.
+    Coins: €2 and 1, and 50, 20, 10, 5 cents.
+
+French Polynesia:
+    Currency Denominations: XPF10, 000, 5,000, 1,000 and 500.
+    Coins: XPF100, 50, 20, 10, 5, 2 and 1.
+
+Gabon:
+    Currency Denominations: XAF10,000, 5,000, 2,000, 1,000 and 500.
+    Coins: XAF500, 100, 50, 25, 10, 5 and 1.
+
+Gambia:
+    Currency Denominations: D100, 50, 25, 10 and 5.
+    Coins: D1, and 50, 25, 10, 5 and 1 bututs
+
+Georgia:
+    Currency Denominations: GEL100, 50, 20, 10, 5, 2 and 1.
+    Coins: 50, 20, 10 and 5 tetri.
+
+Germany:
+    Currency Denominations: €500, 200, 100, 50, 20, 10 and 5.
+    Coins: €2 and 1, and 50, 20, 10, 5, 2 and 1 cents.
+
+Ghana:
+    Currency Denominations: ¢50, 20, 10, 5 and 1.
+    Coins: ¢1 and 50, 20, 10, 5 and 1 pesewas.
+
+Gibraltar:
+    Currency Denominations: Gib£50, 20, 10 and 5 for local use only and issued by the Gibraltar government.
+    Coins: Gib£5, 2 and 1, and 50, 20, 10, 5, 2 and 1 pence.
+
+Greece:
+    Currency Denominations: €500, 200, 100, 50, 20, 10 and 5.
+    Coins: €2 and 1, and 50, 20, 10, 5, 2 and 1 cents.
+
+Grenada:
+    Currency Denominations: EC$100, 50, 20, 10 and 5.
+    Coins: EC$1, and 50, 25, 10, 5, 2 and 1 cents.
+
+Guadeloupe:
+    Currency Denominations: €500, 200, 100, 50, 20, 10 and 5.
+    Coins: €2 and 1, and 50, 20, 10, 5, 2 and 1 cents.
+
+Guayana:
+    Currency Denominations: G$1,000, 500, 100 and 20.
+    Coins: G$10, 5 and 1.
+
+Haiti:
+    Currency Denominations: HTG500, 250, 100, 50, 25, 10, 5, 2 and 1.
+    Coins: HTG5 and 1, and 50, 20, 10 and 5 centimes.
+
+Honduras:
+    Currency Denominations: L500, 100, 50, 20, 10, 5, 2 and 1.
+    Coins: 50, 20, 10, 5, 2 and 1 centavos.
+
+Hong Kong:
+    Currency Denominations: HK$1,000, 500, 100, 50, 20 and 10.
+    Coins: HK$10, 5, 2 and 1, and 50, 20 and 10 cents.
+
+Hungary:
+    Currency Denominations: Ft20, 000, 10,000, 5,000, 2,000, 1,000, 500 and 200.
+    Coins: Ft100, 50, 20, 10 and 5.
+
+Ibiza:
+    Currency Denominations: €500, 200, 100, 50, 20, 10 and 5.
+    Coins: €2 and 1, and 50, 20, 10, 5, 2 and 1 cents.
+
+Iceland:
+    Currency Denominations: kr5, 000, 2,000, 1,000 and 500.
+    Coins: kr100, 50, 10, 5 and 1.
+
+India:
+    Currency Denominations: ₹ 2, 000, 1,000, 500, 100, 50, 20 and 10.
+    Coins: ₹10, 5, 2 and 1, and 50, 25, 20, 10 and 5 paise
+
+Indonesia:
+    Currency Denominations: Rp100, 000, 50,000, 20,000, 10,000, 5,000, 1,000 and 500.
+    Coins: Rp1, 000, 500, 100, 50 and 25.
+
+Iran:
+    Currency Denominations: Rs50,000, 20,000, 10,000, 5,000, 2,000, 1,000, 500, 200 and 100.
+    Coins: Rs500, 250, 100 and 50.
+
+Iraq:
+    Currency Denominations: ID25,000, 10,000, 5,000, 1,000, 500, 250 and 50.
+    Coins: ID100 and 25.
+
+Ireland:
+    Currency Denominations: €500, 200, 100, 50, 20, 10 and 5.
+    Coins: €2 and 1, and 50, 20, 10, 5, 2 and 1 cents.
+
+Israel:
+    Currency Denominations: 200, 100, 50, and 20.
+    Coins: 100, 50, 10, 5 and 1, and 50 and 10 agorot.
+
+Italy:
+    Currency Denominations: €500, 200, 100, 50, 20, 10 and 5.
+    Coins: €2 and 1, and 50, 20, 10, 5, 2 and 1 cents.
+
+Cote D'ivoire:
+    Currency Denominations: XOF10, 000, 5,000, 2,000 and 1,000.
+    Coins: XOF500, 200, 100, 50, 25, 10, 5 and 1.
+
+Jamaica:
+    Currency Denominations: J$1,000, 500, 100 and 50.
+    Coins: J$20, 10, 5 and 1, and 25, 10 and 1 cents.
+
+Japan:
+    Currency Denominations: ¥10,000, 5,000, 2,000 and 1,000.
+    Coins: ¥500, 100, 50, 10, 5 and 1.
+
+Jordan:
+    Currency Denominations: JD50, 20, 10, 5 and 1, and 500 fils.
+    Coins: JD1, 1/2 and 1/4; 10, 5, 2 and 1/2 piastres; and 1 and 1/2 qirsh.
+
+Kazakhstan:
+    Currency Denominations: KZT10, 000, 5,000, 2,000, 1,000, 500 and 200.
+    Coins: KZT100, 50, 20, 10, 5, 2 and 1.
+
+Kenya:
+    Currency Denominations: KSh1,000, 500, 200, 100 and 50.
+    Coins: KSh20, 10 and 5.
+
+Kosovo:
+    Currency Denominations: RSD5,000, 1,000, 500, 200, 100, 50, 20 and 10.
+    Coins: RSD20, 10, 5, 2 and 1.
+
+Kuwait:
+    Currency Denominations: KWD20, 10, 5 and 1, and 500 and 250 fils
+    Coins: 100, 50, 20, 10, 5 and 1 fils.
+
+Kyrgyzstan:
+    Currency Denominations: KGS 1,000, 500, 200, 100, 50, 20, 10, 5 and 1, and 50, 10 and 1 tyin.
+    Coins: N/A
+
+Laos:
+    Currency Denominations: LAK 50,000, 20,000, 10,000, 5,000, 2,000, 1,000, 500, 100, 50, 10, 5 and 1.
+    Coins: N/A
+
+Latvia:
+    Currency Denominations: Ls500, 100, 50, 20, 10 and 5.
+    Coins: Ls2 and 1, and 50, 20, 10, 5, 2 and 1 santims.
+
+Lebanon:
+    Currency Denominations: L£100,000, 50,000, 20,000, 10,000, 5,000, 1,000, 500, 250, 100, 50, 25, 10, 5 and 1.
+    Coins: L£500, 250, 100 and 50.
+
+Liberia:
+    Currency Denominations: L$100, 50, 20, 10 and 5.
+    Coins: L$1 and 50, 25, 10 and 5 cents.
+
+Libya:
+    Currency Denominations: LD20, 10, 5, 1, 1/2 and 1/4 dinars.
+    Coins: 100, 50, 20, 10, 5 and 1 dirhams and 1/2 and 1/4 dinars.
+
+Liechtenstein:
+    Currency Denominations: SFr1,000, 200, 100, 50, 20 and 10.
+    Coins: SFr5, 2 and 1, and 50, 20, 10 and 5 rappen/centimes.
+
+Lithuania:
+    Currency Denominations: Lt500, 200, 100, 50, 20 and 10.
+    Coins: Lt5, 2 and 1, and 50, 20, 10, 5, 2 and 1 centas.
+
+Macau:
+    Currency Denominations: MOP$1,000, 500, 100, 50, 20 and 10.
+    Coins: MOP$10, 5, 2 and 1, and 50, 20 and 10 avos.
+
+Macedonia:
+    Currency Denominations: MKD 5,000, 1,000, 500, 100, 50 and 10.
+    Coins: MKD 5, 2 and 1, and 50 deni.
+
+Madagascar:
+    Currency Denominations: Ar10, 000, 5,000, 2,000, 1,000, 500, 200 and 100
+    Coins: Ar50, 20, 10, 5, 2 and 1.
+
+Malawi:
+    Currency Denominations: Mk500, 200, 100, 50, 20, 10 and 5.
+    Coins: Mk1 and 20, 10, 5, 2 and 1 tambala.
+
+Malaysia:
+    Currency Denominations: RM100, 50, 10, 5, 2 and 1.
+    Coins: 50, 20, 10, 5 and 1 sen
+
+Maldives:
+    Currency Denominations: MRf500, 100, 50, 20, 10 and 5.
+    Coins: MRf2 and 1, and 50, 25, 10, 5, 2 and 1 laari.
+
+Mali:
+    Currency Denominations: XOF10, 000, 5,000, 2,000, 1,000 and 500.
+    Coins: XOF500, 100, 50, 25, 10, 5 and 1.
+
+Mallorca / Majorca:
+    Currency Denominations: €500, 200, 100, 50, 20, 10 and 5.
+    Coins: €2 and 1, and 50, 20, 10, 5, 2 and 1 cents.
+
+Malta:
+    Currency Denominations: €500, 200, 100, 50, 20, 10 and 5.
+    Coins: €2 and 1, and 50, 20, 10, 5, 2 and 1 cents.
+
+Martinique:
+    Currency Denominations: €500, 200, 100, 50, 20, 10 and 5.
+    Coins: €2 and 1, and 50, 20, 10, 5, 2 and 1 cents.
+
+Mauritania:
+    Currency Denominations: MRO2, 000, 1,000, 500, 200 and 100.
+    Coins: MRO20, 10, 5 and 1, and 1 and 0.2 khoums.
+
+Mauritius:
+    Currency Denominations: Rp2, 000, 1,000, 500, 200, 100, 50 and 25.
+    Coins: Rp10, 5 and 1, and 50, 20, 10, and 5 cents.
+
+Mexico:
+    Currency Denominations: M$1,000, 500, 200, 100, 50 and 20.
+    Coins: M$100, 50, 20, 10, 5, 2 and 1, and 50, 20, 10 and 5 centavos.
+
+Moldova:
+    Currency Denominations: Lei500, 200, 100, 50, 20, 10, 5 and Leu1
+    Coins: 50, 25, 10, 5 and 1 bani.
+
+Monaco:
+    Currency Denominations: €500, 200, 100, 50, 20, 10 and 5.
+    Coins: €2 and 1, and 50, 20, 10, 5, 2 and 1 cents.
+
+Mongolia:
+    Currency Denominations: MNT20, 000, 10,000, 5,000, 1,000, 500, 100, 50, 20, 10, 5 and 1.
+    Coins: MNT500, 200, 100, 50 and 20.
+
+Morocco:
+    Currency Denominations: Dh200, 100, 50, 20 and 10.
+    Coins: Dh10, 5 and 1, and 50, 20, 10 and 5 centimes.
+
+Mozambique:
+    Currency Denominations: MT1, 000, 500, 200, 100, 50 and 20.
+    Coins: MT10, 5, 2 and 1 and 50, 20, 10, 5 and 1 centavos.
+
+Myanmar / Burma:
+    Currency Denominations: K1,000, 500, 200, 100, 50, 20, 10, 5 and 1.
+
+Namibia:
+    Currency Denominations: N$200, 100, 50, 20 and 10.
+    Coins: N$5, N$1, 50 cents, 10 cents and 5 cents.
+
+North Korea:
+    Currency Denominations: W10,000, 5,000 and 1,000.
+    Coins: W500, 100, 50 and 10.
+
+Nepal:
+    Currency Denominations: Rs1,000, 500, 100, 50, 20, 10, 5, 2 and 1.
+    Coins: 50, 25 and 10 paisa.
+
+Netherlands:
+    Currency Denominations: €500, 200, 100, 50, 20, 10 and 5.
+    Coins: €2 and 1, and 50, 20, 10, 5, 2 and 1 cents.
+
+New Zealand:
+    Currency Denominations: NZ$100, 50, 20, 10 and 5.
+    Coins: NZ$2 and 1, and 50, 20 and 10 cents.
+
+Nicaragua:
+    Currency Denominations: C$500, 100, 50, 20 and 10.
+    Coins: C$5 and 1, and 50, 25, 10 and 5 centavos.
+
+Niger:
+    Currency Denominations: XOF10,000, 5,000, 2,000 and 1,000.
+    Coins: XOF500, 200, 100, 50, 25, 10, 5 and 1.
+
+Nigeria:
+    Currency Denominations: NGN 500, 200, 100, 50, 20, 10 and 5.
+    Coins: NGN 1 and kobo 25, 10, 5 and 1.
+
+Norway:
+    Currency Denominations: Kr1,000, 500, 200, 100 and 50.
+    Coins: Kr20, 10, 5 and 1, and 50 øre.
+
+Oman:
+    Currency Denominations: OMR50, 20, 10, 5 and 1, and 500, 250, 200 and 100 baiza.
+    Coins: 50, 25, 10 and 5 baiza.
+
+Pakistan:
+    Currency Denominations: PKR 5,000, 1,000, 500, 100, 20 and 10.
+    Coins: PKR 5, 2 and 1.
+
+Palestinian Territories:
+    Currency Denominations: ?200, 100, 50, and 20.
+    Coins: ?100, 50, 10, 5 and 1, and 50 and 10 agorot.
+
+Panama:
+    Currency Denominations: There are no Panamanian bank Note denominations.
+    Coins: B/.10 and 1, and 50, 25, 10, 5 and 1 centavos.
+
+Papua New Guinea:
+    Currency Denominations: K100, 50, 20, 10, 5 and 2.
+    Coins: K1, and 50, 20, 10, 5, 2 and 1 toea.
+
+Paraguay:
+    Currency Denominations: Gs100,000, 50,000, 20,000, 10,000, 5,000 and 1,000.
+    Coins: Gs500, 100, 50, 10 and 5.
+
+Peru:
+    Currency Denominations: PEN 200, 100, 50, 20 and 10.
+    Coins: PEN 5, 2 and 1, and 50, 20, 10, 5 and 1 céntimos.
+
+Philippines:
+    Currency Denominations: Php1, 000, 500, 200, 100, 50, 20, 10 and 5.
+    Coins: Php10, 5, 2 and 1, and 50, 25, 10 and 5 centavos.
+
+Poland:
+    Currency Denominations: zl200, 100, 50, 20 and 10.
+    Coins: zl5, 2 and 1, and 50, 20, 10, 5, 2 and 1 groszy.
+
+Portugal:
+    Currency Denominations: €500, 200, 100, 50, 20, 10 and 5.
+    Coins: €2 and 1, and 50, 20, 10, 5, 2 and 1 cents.
+
+Puerto Rico:
+    Currency Denominations: $100, 50, 20, 10, 5, 2 and 1.
+    Coins: $1, and 50, 25, 10, 5 and 1 cents.
+
+Qatar:
+    Currency Denominations: QR500, 100, 50, 10, 5 and 1.
+    Coins: 50 and 25 dirhams.
+
+Reunion:
+    Currency Denominations: €500, 200, 100, 50, 20, 10 and 5.
+    Coins: €2 and 1, and 50, 20, 10, 5, 2 and 1 cents.
+
+Romania:
+    Currency Denominations: Lei500, 100, 50, 20, 10, 5 and Leu1.
+    Coins: 50, 10, 5 and 1 bani.
+
+Russia:
+    Currency Denominations: RUB 5,000, 1,000, 500, 100, 50 and 10.
+    Coins: RUB 10, 5, 2 and 1, and 50, 10, 5 and 1 kopeks.
+
+Rwanda:
+    Currency Denominations: RWF5,000, 1,000, 500 and 100.
+    Coins: RWF50, 20, 10, 5, 2 and 1.
+
+Saint Lucia:
+    Currency Denominations: EC$100, 50, 20, 10 and 5.
+    Coins: EC$1, and 50, 25, 10, 5, 2 and 1 cents.
+
+Samoa:
+    Currency Denominations: St$100, 50, 20, 10, 5 and 2.
+    Coins: St$1, and 50, 20, 10, 5, 2 and 1 sene.
+
+Saudi Arabia:
+    Currency Denominations: SAR500, 100, 50, 10, 5 and 1.
+    Coins: 50, 25, 10, and 5 halala.
+
+Senegal:
+    Currency Denominations: XOF10,000, 5,000, 2,000 and 1,000.
+    Coins: XOF500, 200, 100, 50, 25, 10, 5 and 1.
+
+Serbia:
+    Currency Denominations: RSD 5,000, 1,000, 500, 200, 100, 50, 20 and 10
+    Coins: RSD 20, 10, 5, 2 and 1.
+
+Seychelles:
+    Currency Denominations: Rp500, 100, 50, 25 and 10.
+    Coins: Rp5 and 1, and 25, 10, 5 and 1 cents.
+
+Singapore:
+    Currency Denominations: S$10,000, 1,000, 500, 100, 50, 10, 5 and 2.
+    Coins: S$1, and 50, 20, 10, 5 and 1 cents.
+
+Slovakia:
+    Currency Denominations: €500, 200, 100, 50, 20, 10 and 5.
+    Coins: €2 and 1, and 50, 20, 10, 5, 2 and 1 cents.
+
+Slovenia:
+    Currency Denominations: €500, 200, 100, 50, 20, 10 and 5.
+    Coins: €2 and 1, and 50, 20, 10, 5, 2 and 1 cents.
+
+Soloman Islands:
+    Currency Denominations: SI$50, 20, 10, 5 and 2.
+    Coins: SI$1, and 50, 20, 10, 5, 2 and 1 cents.
+    Currency Denominations 
+
+Somalia:
+    Currency Denominations: S500, 100, 50, 20, 10 and 5.
+    Coins: S1, and 50, 10 and 5 cents.
+
+South Africa:
+    Currency Denominations: R200, 100, 50, 20 and 10.
+    Coins: R5, 2 and 1, and 50, 20, 10 and 5 cents.
+
+South Korea:
+    Currency Denominations: W10,000, 5,000 and 1,000.
+    Coins: W500, 100, 50 and 10.
+
+Spain:
+    Currency Denominations: €500, 200, 100, 50, 20, 10 and 5.
+    Coins: €2 and 1, and 50, 20, 10, 5, 2 and 1 cents.
+
+Sri Lanka:
+    Currency Denominations: Rp2,000, 1,000, 500, 200, 100, 50, 20 and 10.
+    Coins: Rp10, 5, 2 and 1, and 50, 25, 10, 5, 2 and 1 cents.
+
+Sudan:
+    Currency Denominations: SDG50, 20, 10, 5, 2 and 1.
+    Coins: 50, 20, 10, 5 and 1 piasters.
+
+Suriname:
+    Currency Denominations: S$100, 50, 20, 10 and 5.
+    Coins: 250, 100, 25, 10, 5 and 1 cents.
+
+Swaziland:
+    Currency Denominations: E200, 100, 50, 20 and 10.
+    Coins: E5, 2 and 1, and 100, 50, 20, 10, 5, 2 and 1 cents.
+
+Sweden:
+    Currency Denominations: kr1, 000, 500, 100, 50 and 20.
+    Coins: kr10, 5, 2 and 1, and 50 öre.
+
+Switzerland:
+    Currency Denominations: SFr1, 000, 200, 100, 50, 20 and 10.
+    Coins: SFr5, 2 and 1, and 50, 20, 10 and 5 centimes.
+
+Syria:
+    Currency Denominations: S£1,000, 500, 200, 100, 50, 25, 10, 5 and 1.
+    Coins: S£25, 10, 5, 2 and 1.
+
+Taiwan:
+    Currency Denominations: NT$2,000, 1,000, 500, 200 and 100.
+    Coins: NT$50, 20, 10, 5 and 1.
+
+Tajikistan:
+    Currency Denominations: TJS100, 50, 20, 10, 5 and 1, and 50, 20, 5 and 1 diram
+    Coins: N/A
+
+Tanzania:
+    Currency Denominations: TSh10,000, 5000, 2,000, 1,000 and 500.
+    Coins: TSh200, 100 and 50.
+
+Thailand:
+    Currency Denominations: THB 1,000, 500, 100, 50, 20 and 10.
+    Coins: THB 10, 5 and 1, and 50 and 25 satang.
+
+Togo:
+    Currency Denominations: XOF10,000, 5,000, 2,000 and 1,000.
+    Coins: XOF500, 200, 100, 50, 25, 10, 5 and 1.
+
+Tonga:
+    Currency Denominations: TOP50, 20, 10, 5, 2 and 1.
+    Coins: 50, 20, 10, 5, 2 and 1 seniti.
+
+Trinidad And Tobago:
+    Currency Denominations: TT$100, 20, 10, 5 and 1.
+    Coins: 50, 25, 10, 5 and 1 cents.
+
+Tunisia:
+    Currency Denominations: TND30, 20, 10 and 5.
+    Coins: TND5 and 1, and 500, 100, 50, 20, 10 and 5 millimes.
+
+Turkey:
+    Currency Denominations: YTL200, 100, 50, 20, 10, 5 and 1.
+    Coins: YTL1 and 50, 25, 10, 5 and 1 New Kurus.
+
+Turkmenistan:
+    Currency Denominations: TMT1, 000, 500, 100, 50, 10, 5 and 1.
+    Coins: 50, 20, 10, 5 and 1 tenge.
+
+Uganda:
+    Currency Denominations: UGX50,000, 20,000, 10,000, 5,000 and 1,000.
+    Coins: UGX500, 200, 100, 50, 20, 10, 5, 2 and 1.
+
+Ukraine:
+    Currency Denominations: UAH500, 200, 100, 50, 20, 10, 5, 2 and 1.
+    Coins: UAH1 and 50, 25, 10, 5, 2 and 1 kopiyok.
+
+United Arab Emirates:
+    Currency Denominations: AED1,000, 500, 200, 100, 50, 20, 10 and 5.
+    Coins: AED1, and 50, 25, 10 and 5 fils
+
+United States Of America:
+    Currency Denominations: $100, 50, 20, 10, 5, 2 and 1.
+    Coins: $1, and 50, 25, 10, 5 and 1 cents.
+
+Uruguay:
+    Currency Denominations: $U2,000, 1,000, 500, 200, 100, 50, 20, 10 and 5.
+    Coins: $U10, 5, 2 and 1 and 50 centécimos.
+
+Uzbekistan:
+    Currency Denominations: UZS 1,000, 500, 200, 100, 50, 25, 10, 5, 3 and 1.
+    Coins: UZS 100, 50, 25, 10, 5 and 1, and 50, 20, 10, 5, 3 and 1 tiyn.
+
+Vanuatu:
+    Currency Denominations: VUV5,000, 1,000, 500 and 200.
+    Coins: VUV100, 50, 20, 10, 5, 2 and 1.
+
+Venezuela:
+    Currency Denominations: Bs.F.100, 50, 20, 10, 5 and 2.
+    Coins: Bs.F.1, and 50, 25, 12.5, 10, 5 and 1 céntimos.
+
+Yemen:
+    Currency Denominations: YER1,000, 500, 200, 100, 50 and 20.
+    Coins: YER10, 5 and 1.
+
+Zambia:
+    Currency Denominations: ZMK50,000, 20,000, 10,000, 5,000, 1,000, 500, 100, 50 and 20.
+    Coins: ZMK10, 5 and 1, and 50 and 25 ngwee.
+
+Zimbabwe:
+    Currency Denominations: Z$200,000, 100,000, 50,000, 10,000, 5,000, 1,000, 500, 100, 50, 20, 10, 5 and 2.
+    Coins: Z$5, 2 and 1, and 50, 20, 10, 5 and 1 cents.
