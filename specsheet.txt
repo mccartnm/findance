@@ -78,14 +78,11 @@ Setup:
         - Exchange Rates:
             - Alpha Vantage: (~/Month) <- Probably the best for starters
                 `- Exchange Rate: https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=USD&to_currency=EUR&apikey={}
-                `- API ID : L0YU411ZXGHH22V2
             - Open Exchange Rates: (1000/month)
                 `- Currency Aliases: https://openexchangerates.org/api/currencies.json <- Best for this purpose as it's free (no api key needed)
                 `- Live Rates : https://openexchangerates.org/api/latest.json?app_id={}
-                `- API ID : bc826a4b1c6e4a79a2d84bd30f954f53
             - Currency Layer:(1000/month)
                 `- Live Rates : http://apilayer.net/api/live?access_key={}
-                `- API ID : 94b408862bdd62832555ff2c579c9803
 
 Afghanistan:
     Currency Denominations: AFN 1,000, 500, 100, 50, 20, 10, 5, 2 and 1.
