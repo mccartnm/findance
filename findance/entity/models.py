@@ -24,7 +24,6 @@ class OwningEntity(abstract.BaseFindanceModel):
     def __str__(self):
         return self.name
 
-
 class EntityControl(abstract.BaseFindanceModel):
     """
     Permission/Control over a given OwningEntity.
@@ -60,7 +59,11 @@ class EntityControl(abstract.BaseFindanceModel):
     CONTROL_MAP = { k:v for k,v in CONTROL_CHOICES }
     REVERSE_CONTROL_MAP = { v:k for k,v in CONTROL_CHOICES }
 
-    permission = models.CharField(max_length=1, choices=CONTROL_CHOICES, default=REVERSE_CONTROL_MAP['Read All'])
+    permission = models.CharField(
+        max_length=1,
+        choices=CONTROL_CHOICES,
+        default=REVERSE_CONTROL_MAP['Read All']
+    )
 
     def __repr__(self):
         return f"<(EntityControl, {self.user}, {self.entity})>"
